@@ -26,14 +26,16 @@ def get_root(request: Request):
     return templates.TemplateResponse(request=request, name='index.html',
                                         context={'cities': cities.keys()})
 
+
 @app.get('/{city_name}', response_class=HTMLResponse)
-def get_city(request: Request, city_name: str = Path()):
+def get_by_city(request: Request, city_name: str = Path()):
     forecasts = get_forecast(cities[city_name]['lat'], cities[city_name]['lon']) # must be a Forecasts object, not just dict
     return templates.TemplateResponse(request=request, name='forecast_spot.html',
                                         context={'city': cities[city_name], 'forecasts': forecasts})
 
+
 @app.get('/coords', response_class=HTMLResponse)
-def get_coords(lat: Decimal = Query(default=56), lon: Decimal = Query(default=44), lev: Optional[Decimal] = Query(default=None)):
+def get_by_coords(lat: Decimal = Query(default=56), lon: Decimal = Query(default=44), lev: Optional[Decimal] = Query(default=None)):
     return FileResponse(filename='templates/forecast_coords.html')
 
 

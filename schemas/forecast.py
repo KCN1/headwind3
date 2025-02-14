@@ -1,7 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from pydantic import BaseModel
-from typing import List, Union, Optional, Dict, OrderedDict
+from typing import List, Union, Optional, Dict
 
 
 class HourlyForecast(BaseModel):
@@ -52,10 +52,9 @@ class Forecast(BaseModel):
     latitude: Decimal
     longitude: Decimal
     elevation: Decimal
-    timezone: Optional[str]
-    timezone_abbreviation: Optional[str]
-    utc_offset_seconds: Optional[str]
-    models: List[str]
-    hourly: List[HourlyForecast]
+    timezone: str
+    timezone_abbreviation: str
+    utc_offset_seconds: str
+    hourly: Dict[str, HourlyForecast]
 
 
