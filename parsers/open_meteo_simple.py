@@ -6,21 +6,22 @@ from schemas.forecast import Forecast, HourlyForecast
 
 MODELS = ['gfs_seamless', 'ecmwf_ifs025', 'ecmwf_aifs025', 'icon_seamless']
 
-def convert_forecast(forecast_parser): # декоратор для преобразования в модель Forecast
+
+def convert_forecast(forecast_parser):  # декоратор для преобразования в модель Forecast
     def wrapper(**kwargs):
         forecast_orig = forecast_parser(**kwargs)
-        forecast_conv = {k:forecast_orig[k] for k in Forecast.model_fields if k != 'hourly'}
-        #TODO: error handling for bad response
+        forecast_conv = {k: forecast_orig[k] for k in Forecast.model_fields if k != 'hourly'}
+        # TODO: error handling for bad response
         forecast_conv['hourly'] = {}
         for model in MODELS:
             forecast_conv['hourly'][model] = {k[:-1-len(model)]:v for k, v in forecast_orig['hourly'].items() if k.endswith(model)}
         return forecast_conv
     return wrapper
 
+
 @convert_forecast
 def get_forecast(*, lat: Decimal, lon: Decimal, elev: Optional[Decimal] = None):
 
-#    days = {'gfs_seamless': 15, 'ecmwf_ifs025': 10, 'ecmwf_aifs025': 10, 'icon_seamless': 7}
     temporal_resolution = 'hourly_3'
     wind_levels = ["100m", "120m", "950hPa", "925hPa", "900hPa", "850hPa", "800hPa"]
 
@@ -50,6 +51,5 @@ def get_forecast(*, lat: Decimal, lon: Decimal, elev: Optional[Decimal] = None):
 
 if __name__ == '__main__':
 
-    forecast = get_forecast(lat='56', lon='44')
+    forecast = get_forecast(lat=56, lon=44)
     pprint(forecast)
-

@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>headwind</title>
-    <link rel="stylesheet" href="styles.css">
-    <script src="descriptions.js"></script>
+    <link rel="stylesheet" href="/files/styles.css">
+    <script src="/files/descriptions.js"></script>
 </head>
 <body>
 <header>
@@ -13,7 +13,7 @@
     <tbody>
         <tr>
             <td id='welcomeTitle'>Погода по координатам</td>
-            <td><a href='index.html'>Другие города</a></td>
+            <td><a href='/'>Другие города</a></td>
         </tr>
     </tbody>
 </table>
@@ -21,10 +21,10 @@
 <div align='center'><b>
     <form style='display: inline' id='coords' name='coords' onsubmit='changeParams(event)'>
         Координаты:
-        <input id='lat' name='lat' value=56 size=4>
-        <input id='lon' name='lon' value=44  size=4>
+        <input id='lat' name='lat' value={{lat}} size=4>
+        <input id='lon' name='lon' value={{lon}}  size=4>
         ┃ Высота старта: 
-        <input id='elev' size=4 disabled>
+        <input id='elev' name='lev' size=4 disabled>
         ┃ 
         <span>Ветер на
             <select id='lev' name='lev'>
@@ -43,7 +43,7 @@
         </select> ┃ </span>
         <span>
             1ч
-            <input type="checkbox" name="hly" id="hly">
+            <input type="checkbox" name="hly" id="hly" disabled>
             <button type='submit'>Обновить</button>
             <button type='reset'>Сброс</button>
         </span>
