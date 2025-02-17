@@ -21,12 +21,11 @@
 <div align='center'><b>
     <form style='display: inline' id='coords' name='coords' onsubmit='changeParams(event)'>
         Координаты:
-        <input id='lat' name='lat' value={{lat}} size=4>
-        <input id='lon' name='lon' value={{lon}}  size=4>
-        ┃ Высота старта: 
-        <input id='elev' name='lev' size=4 disabled>
-        ┃ 
-        <span>Ветер на
+        <input id='lat' name='lat' value={{lat}} size=6 disabled>
+        <input id='lon' name='lon' value={{lon}}  size=6 disabled>
+        ┃ Высота старта:
+        <input id='elev' name='elev' size=4 disabled> м
+        ┃ <span>Ветер на
             <select id='lev' name='lev'>
                 <option value='950hPa'>~500м абс. (950мбар)</option>
                 <option value='925hPa' selected>~750м абс. (925мбар)</option>
@@ -149,7 +148,7 @@
                                 `wind_speed_${level}`, `wind_direction_${level}`, `geopotential_height_${level}`,
                                 "cloud_cover", "cloud_cover_low", "weather_code", "boundary_layer_height", "is_day"],
                     "current": [],
-                    "models": [model]
+                    "models": model
                 }
                 const url = new URL("https://api.open-meteo.com/v1/forecast");
                 url.search = new URLSearchParams(params).toString().replace(/%2C/g,",");
