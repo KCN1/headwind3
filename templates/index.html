@@ -18,7 +18,7 @@
 </table>
 <br>
 <div align='center'><b>
-    <form id='coords' name='coords' action="/coords">
+    <form id='coords' name='coords' action="/coords" method="post">
         Координаты:
         <input id='lat' name='lat' value=56 size=4 title="dd.dddd">
         <input id='lon' name='lon' value=44  size=4 title="dd.dddd">
@@ -34,11 +34,13 @@
 </header>
 <main>
 <div align='center' max-width='device-width' class="cityList">
-    <ul id="cityList">
+    <table>
+        <tbody id="cityList">
         {% for city in cities -%}
-            <li><a href=/cities/{{city}}>{{cities[city].name}}</a></li>
+            <tr><td><a href=/cities/{{city}}>{{cities[city].name}}</a></td></tr>
         {% endfor -%}
-    </ul>
+        </tbody>
+    </table>
 </div>
 </main>
 </body>
