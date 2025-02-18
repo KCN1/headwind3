@@ -21,12 +21,12 @@
 <div align='center'><b>
     <form style='display: inline' id='coords' name='coords' onsubmit='changeParams(event)'>
         Координаты:
-        <input id='lat' name='lat' value={{lat}} size=6 disabled>
-        <input id='lon' name='lon' value={{lon}}  size=6 disabled>
+        <input id='lat' name='lat' value={{lat}} size=4 disabled>
+        <input id='lon' name='lon' value={{lon}} size=4 disabled>
         ┃ Высота старта: 
         <input id='elev' name='elev' size=4 disabled> м
         ┃ <span>Ветер на
-            <select id='lev' name='lev'>
+            <select id='lev' name='lev' onchange="changeParams(event)">
                 <option value='950hPa'>~500м абс. (950мбар)</option>
                 <option value='925hPa' selected>~750м абс. (925мбар)</option>
                 <option value='900hPa'>~1000м абс. (900мбар)</option>
@@ -35,20 +35,21 @@
             </select> ┃
         </span>
         <span>Модель:
-        <select id='model' name='model'>
+        <select id='model' name='model' onchange="changeParams(event)">
             <option value='gfs_seamless' selected>GFS 0.11-0.25°</option>
             <option value='ecmwf_ifs025'>ECMWF 0.25°</option>
             <option value='icon_seamless'>ICON 0.1°</option>
-        </select> ┃ </span>
+        </select></span>
         <span>
-            1ч
-            <input type="checkbox" name="hly" id="hly" disabled>
-            <button type='submit'>Обновить</button>
-            <button type='reset'>Сброс</button>
+<!--            ┃ 1ч-->
+            <input type="checkbox" name="hly" id="hly" hidden disabled>
+<!--            <button type='submit'>Обновить</button>-->
+<!--            <button type='reset'>Сброс</button>-->
         </span>
     </form>
 </b></div>
 <div hidden id='someshit'></div>
+<div hidden id="forecasts">{{ forecasts | tojson }}</div>
 </header>
 <main>
 <div align='center' max-width='device-width'>
@@ -58,7 +59,7 @@
         <col width="6%">
         <col width="4%">
         <col width="4%">
-        <col class="wind1" width="9%">
+        <col class="wind1" width="10%">
         <col class="wind1g" width="8%">
         <col class="wind2" width="8%">
         <col class="wind3" width="8%">
@@ -122,7 +123,7 @@
                 return arrow;
             }
 
-            // get forecast data from api.open-meteo.com
+            // get forecast data from api.open-meteo.com loaded to hidden div "forecasts"
             function getForecast(latitude, longitude, model, level, isHourly) {
                 let days = {'gfs_seamless': 15, 'ecmwf_ifs025': 10, 'ecmwf_aifs025': 10, 'icon_seamless': 7}[model];
                 // available ~100m AGL level for each model
@@ -134,179 +135,147 @@
                 const approxHgts = {"950hPa": 500, "925hPa": 750, "900hPa": 1000, "850hPa": 1500, "800hPa": 2000}
                 // number of rows for each date
                 const timeResol = isHourly ? 24 : 8;
-                const params = {
-                    "latitude": latitude,
-                    "longitude": longitude,
-                    "forecast_days": days,
-                    "wind_speed_unit": "ms",
-                    "timezone": "auto",
-                    "temporal_resolution": `hourly_${isHourly ? 1 : 3}`,
-                    "hourly": ["temperature_2m", "precipitation", "precipitation_probability", "wind_speed_10m",
-                                "wind_gusts_10m", "wind_direction_10m", `wind_speed_${mLevel[model]}m`, `wind_direction_${mLevel[model]}m`,
-                                `wind_speed_${level}`, `wind_direction_${level}`, `geopotential_height_${level}`,
-                                "cloud_cover", "cloud_cover_low", "weather_code", "boundary_layer_height", "is_day"],
-                    "current": [],
-                    "models": [model]
+
+                const result = JSON.parse(document.getElementById('forecasts').textContent) // forecast dictionary
+                const n = timeResol * days; // length of the data range for a given model
+                const mainTable = document.getElementById('mainTable');
+                let tableDate = new Date(0); // current datetime variable
+
+                document.getElementById('tzone').textContent = result.timezone_abbreviation ?? 'GMT'; // insert timezone
+                document.getElementById('elev').setAttribute('value', result.elevation ?? '?'); // insert elevation
+                document.querySelectorAll('tr.dataRow').forEach(element => element.remove()); // delete all rows in the table except header
+
+                // assign height AGL for given pressure levels
+                document.getElementById('h100m').textContent = `${mLevel[model]} m`;
+                document.getElementById('p925mb').textContent = `~ ${50 * Math.round((approxHgts[level] - result.elevation) / 50)} m`;
+                document.getElementById('p925mb').setAttribute('title', level);
+                document.getElementById('precip').setAttribute('title', `mm / ${isHourly ? 1 : 3}h`);
+
+                for (let i = 0; i < n; i++) {
+                    // new row
+                    let childRow = document.createElement('tr');
+                    childRow.setAttribute('id', `row${i}`);
+                    childRow.setAttribute('class', 'dataRow');
+
+                    // convert current forecast time to UTC, then create a Date object
+                    let datetime = new Date(stupidConverter(result.hourly[model].time[i], result.utc_offset_seconds));
+                    // store UTC datetime in a hidden column
+                    let hiddenDateTimeCell = document.createElement('td');
+                    hiddenDateTimeCell.setAttribute('hidden', '');
+                    hiddenDateTimeCell.setAttribute('class', 'hiddendatetime');
+                    hiddenDateTimeCell.textContent = datetime.toISOString();
+                    childRow.appendChild(hiddenDateTimeCell);
+                    // create date and time cells
+                    let dateCell = document.createElement('td');
+                    let timeCell = document.createElement('td');
+                    dateCell.setAttribute('class', 'date');
+                    timeCell.setAttribute('class', 'time');
+                    // new date cell for a new date:
+                    if (tableDate.toLocaleDateString('en-GB', {timeZone: result.timezone, timeZoneName: 'shortOffset'}) != datetime.toLocaleDateString('en-GB', {timeZone: result.timezone, timeZoneName: 'shortOffset'})) {
+                        dateCell.innerHTML = `<big>${datetime.toLocaleDateString([], {weekday: 'short', timeZone: result.timezone}).toUpperCase()}</big><br>${datetime.toLocaleDateString([], {month: 'numeric', day: 'numeric', timeZone: result.timezone})}`;
+                        dateCell.setAttribute('rowspan', `${timeResol}`);
+                        if ([0, 6].includes(datetime.getDay())) {dateCell.classList.add('weekend');}
+                        childRow.appendChild(dateCell);
+                        tableDate = datetime;
+                        let emptyRow;
+                        // two empty rows to preserve odd-even sequence
+                        for (let i = 0; i < 2; i++) {
+                            emptyRow = document.createElement('tr');
+                            emptyRow.setAttribute('class', 'dataRow');
+                            mainTable.appendChild(emptyRow);
+                        }
+                        // adjust spacing between table parts (second empty row)
+                        emptyRow.setAttribute('style', 'height: 3rem');
+                    }
+                    // local time for the forecast location
+                    timeCell.innerHTML = `${datetime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: result.timezone})}`;
+
+                    childRow.appendChild(timeCell);
+                    // create cell for weather code symbol
+                    // add picture and description for the current weather code from openweathermap.org
+                    let weatherCodeCell = document.createElement('td');
+                    weatherCodeCell.setAttribute('class', 'weatherCode');
+                    let tmpImg = document.createElement('img');
+                    tmpImg.setAttribute('src', descriptions[result.hourly[model].weather_code[i] ?? -1][result.hourly[model].is_day[i]  ? 'day' : 'night']['image']);
+                    tmpImg.setAttribute('alt', descriptions[result.hourly[model].weather_code[i] ?? -1][result.hourly[model].is_day[i]  ? 'day' : 'night']['description']);
+                    tmpImg.setAttribute('title', descriptions[result.hourly[model].weather_code[i] ?? -1][result.hourly[model].is_day[i]  ? 'day' : 'night']['description']);
+                    weatherCodeCell.appendChild(tmpImg);
+                    childRow.appendChild(weatherCodeCell);
+                    // create cell for temperature at ground level
+                    let temperatureCell = document.createElement('td');
+                    temperatureCell.setAttribute('class', 'temperature');
+                    let temp = Math.round(result.hourly[model].temperature_2m[i]);
+                    temperatureCell.textContent = `${(temp>0?'+':'') + temp}`;
+                    childRow.appendChild(temperatureCell);
+                    // create cell for wind at ground level
+                    // draw arrow for wind_direction_10m, add value of wind_speed_10m
+                    let windCell = document.createElement('td');
+                    windCell.setAttribute('class', 'wind1');
+                    windCell.appendChild(drawArrow(result.hourly[model].wind_direction_10m[i]))
+                    let windText = document.createElement('span');
+                    windText.innerHTML = ` <b>${Math.round(result.hourly[model].wind_speed_10m[i])}</b>`;
+                    windCell.appendChild(windText);
+                    childRow.appendChild(windCell);
+                    // add value of wind_gusts_10m
+                    windCell = document.createElement('td');
+                    windCell.setAttribute('class', 'wind1g');
+                    windCell.textContent = ` ⇒ ${Math.round(result.hourly[model].wind_gusts_10m[i])}`;
+                    childRow.appendChild(windCell);
+                    // create cell for wind at 100-120m
+                    // draw arrow for wind direction, add value of wind speed at 100m or 120m, depending on the model
+                    windCell = document.createElement('td');
+                    windCell.setAttribute('class', 'wind2');
+                    let windSpan = document.createElement('span');
+                    windSpan.setAttribute('class', 'mobileHide');
+                    windSpan.appendChild(drawArrow(result.hourly[model][`wind_direction_${mLevel[model]}m`][i]));
+                    windText = document.createElement('span');
+                    windText.textContent = ` ${Math.round(result.hourly[model][`wind_speed_${mLevel[model]}m`][i])}`;
+                    windText.setAttribute('title', `at ${mLevel[model]}m`);
+                    windSpan.appendChild(windText);
+                    windCell.appendChild(windSpan);
+                    childRow.appendChild(windCell);
+                    // create cell for wind at given pressure level
+                    // draw arrow for wind direction, add value of wind speed at given pressure level
+                    // add exact height corresponding to given pressure level (as title)
+                    windCell = document.createElement('td');
+                    windCell.setAttribute('class', 'wind3');
+                    windSpan = document.createElement('span');
+                    windSpan.setAttribute('class', 'mobileHide');
+                    windSpan.appendChild(drawArrow(result.hourly[model][`wind_direction_${level}`][i]));
+                    windText = document.createElement('span');
+                    windText.textContent = ` ${Math.round(result.hourly[model][`wind_speed_${level}`][i])}`;
+                    windText.setAttribute('title', `at ${10 * Math.round((result.hourly[model][`geopotential_height_${level}`][i] - result.elevation) / 10)}m`);
+                    windSpan.appendChild(windText);
+                    windCell.appendChild(windSpan);
+                    childRow.appendChild(windCell);
+                    // create cell for total clouds
+                    let cloudsCell = document.createElement('td');
+                    cloudsCell.setAttribute('class', 'clouds');
+                    cloudsCell.textContent = result.hourly[model].cloud_cover[i];
+                    childRow.appendChild(cloudsCell);
+                    // create cell for low clouds
+                    let cloudsLowCell = document.createElement('td');
+                    cloudsLowCell.className = 'cloudsLow';
+                    cloudsLowCell.innerHTML = `<span class="mobileHide"> | ${result.hourly[model].cloud_cover_low[i]}</span>`;
+                    childRow.appendChild(cloudsLowCell);
+                    // create cell for precipitation
+                    let precipitationCell = document.createElement('td');
+                    precipitationCell.setAttribute('class', 'precipitation');
+                    precipitationCell.innerHTML = `<span title="mm / ${isHourly ? 1 : 3}h">${result.hourly[model].precipitation[i]}</span>`;
+                    childRow.appendChild(precipitationCell);
+                    // create cell for precipitation probability
+                    let precipitationProbCell = document.createElement('td');
+                    precipitationProbCell.className = 'precipitationProb';
+                    precipitationProbCell.innerHTML = `<span class="mobileHide" title="probability"> | ${result.hourly[model].precipitation_probability[i] ?? '('}%</span>`;
+                    childRow.appendChild(precipitationProbCell);
+                    // create cell for planetary boundary layer height
+                    let pblCell = document.createElement('td');
+                    pblCell.setAttribute('class', 'pbl');
+                    pblCell.textContent = result.hourly[model].boundary_layer_height[i];
+                    childRow.appendChild(pblCell);
+
+                    mainTable.appendChild(childRow);
                 }
-                const url = new URL("https://api.open-meteo.com/v1/forecast");
-                url.search = new URLSearchParams(params).toString().replace(/%2C/g,",");
-
-                fetch(url.href).then(response => {
-                    if (response.ok) {
-                        return response.json();
-                    } else {
-                        console.log(`Cannot open url = ${url.toString()}: ${response.status}`);
-                        return {"hourly":{"time":{}}};
-                    }
-                }).then(result => {
-                    
-                    const n = result.hourly.time.length;
-                    const tzone = document.getElementById('tzone');
-                    tzone.textContent = result.timezone_abbreviation ?? 'GMT';
-                    const mainTable = document.getElementById('mainTable');
-                    const elev = document.getElementById('elev');
-                    elev.setAttribute('value', result.elevation ?? '?');
-                    let tableDate = new Date(0);
-                    // convert time of forecast to UTC, then create a Date object
-                    let currentTime = new Date(stupidConverter(result.current.time, result.utc_offset_seconds));
-                    dataRows = document.querySelectorAll('tr.dataRow');
-                    dataRows.forEach(element => element.remove()); // delete all rows in the table except header
-                    // assign height AGL for given pressure level
-                    document.getElementById('h100m').textContent = `${mLevel[model]} m`;
-                    document.getElementById('p925mb').textContent = `~ ${50 * Math.round((approxHgts[level] - result.elevation) / 50)} m`;
-                    document.getElementById('p925mb').setAttribute('title', level);
-                    document.getElementById('precip').setAttribute('title', `mm / ${isHourly ? 1 : 3}h`);
-
-                    for (let i = 0; i < n; i++) {
-                        // new row
-                        let childRow = document.createElement('tr');
-                        childRow.setAttribute('id', `row${i}`);
-                        childRow.setAttribute('class', 'dataRow');
-                        // convert current forecast time to UTC, then create a Date object
-                        let datetime = new Date(stupidConverter(result.hourly.time[i], result.utc_offset_seconds));
-                        // store UTC datetime in a hidden column
-                        let hiddenDateTimeCell = document.createElement('td');
-                        hiddenDateTimeCell.setAttribute('hidden', '');
-                        hiddenDateTimeCell.setAttribute('class', 'hiddendatetime');
-                        hiddenDateTimeCell.textContent = datetime.toISOString();
-                        childRow.appendChild(hiddenDateTimeCell);
-                        // create date and time cells
-                        let dateCell = document.createElement('td');
-                        let timeCell = document.createElement('td');
-                        dateCell.setAttribute('class', 'date');
-                        timeCell.setAttribute('class', 'time');
-                        // new date cell for a new date:
-                        if (tableDate.toLocaleDateString('en-GB', {timeZone: result.timezone, timeZoneName: 'shortOffset'}) != datetime.toLocaleDateString('en-GB', {timeZone: result.timezone, timeZoneName: 'shortOffset'})) {
-                            dateCell.innerHTML = `<big>${datetime.toLocaleDateString([], {weekday: 'short', timeZone: result.timezone}).toUpperCase()}</big><br>${datetime.toLocaleDateString([], {month: 'numeric', day: 'numeric', timeZone: result.timezone})}`;
-                            dateCell.setAttribute('rowspan', `${timeResol}`);
-                            if ([0, 6].includes(datetime.getDay())) {dateCell.classList.add('weekend');}
-                            childRow.appendChild(dateCell);
-                            tableDate = datetime;
-                            let emptyRow;
-                            // two empty rows to preserve odd-even sequence
-                            for (let i = 0; i < 2; i++) {
-                                emptyRow = document.createElement('tr');
-                                emptyRow.setAttribute('class', 'dataRow');
-                                mainTable.appendChild(emptyRow);
-                            }
-                            // adjust spacing between table parts (second empty row)
-                            emptyRow.setAttribute('style', 'height: 3rem');
-                        }
-                        // local time for the forecast location
-                        timeCell.innerHTML = `${datetime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: result.timezone})}`;
-                        
-                        childRow.appendChild(timeCell);
-                        // create cell for weather code symbol
-                        // add picture and description for the current weather code from openweathermap.org
-                        let weatherCodeCell = document.createElement('td');
-                        weatherCodeCell.setAttribute('class', 'weatherCode');
-                        let tmpImg = document.createElement('img');
-                        tmpImg.setAttribute('src', descriptions[result.hourly.weather_code[i] ?? -1][result.hourly.is_day[i]  ? 'day' : 'night']['image']);
-                        tmpImg.setAttribute('alt', descriptions[result.hourly.weather_code[i] ?? -1][result.hourly.is_day[i]  ? 'day' : 'night']['description']);
-                        tmpImg.setAttribute('title', descriptions[result.hourly.weather_code[i] ?? -1][result.hourly.is_day[i]  ? 'day' : 'night']['description']);
-                        weatherCodeCell.appendChild(tmpImg);
-                        childRow.appendChild(weatherCodeCell);
-                        // create cell for temperature at ground level
-                        let temperatureCell = document.createElement('td');
-                        temperatureCell.setAttribute('class', 'temperature');
-                        let temp = Math.round(result.hourly.temperature_2m[i]);
-                        temperatureCell.textContent = `${(temp>0?'+':'') + temp}`;
-                        childRow.appendChild(temperatureCell);
-                        // create cell for wind at ground level
-                        // draw arrow for wind_direction_10m, add value of wind_speed_10m
-                        let windCell = document.createElement('td');
-                        windCell.setAttribute('class', 'wind1');
-                        windCell.appendChild(drawArrow(result.hourly.wind_direction_10m[i]))
-                        let windText = document.createElement('span');
-                        windText.innerHTML = ` <b>${Math.round(result.hourly.wind_speed_10m[i])}</b>`;
-                        windCell.appendChild(windText);
-                        childRow.appendChild(windCell);
-                        // add value of wind_gusts_10m
-                        windCell = document.createElement('td');
-                        windCell.setAttribute('class', 'wind1g');
-                        windCell.textContent = ` ⇒ ${Math.round(result.hourly.wind_gusts_10m[i])}`;
-                        childRow.appendChild(windCell);
-                        // create cell for wind at 100-120m
-                        // draw arrow for wind direction, add value of wind speed at 100m or 120m, depending on the model
-                        windCell = document.createElement('td');
-                        windCell.setAttribute('class', 'wind2');
-                        let windSpan = document.createElement('span');
-                        windSpan.setAttribute('class', 'mobileHide');
-                        windSpan.appendChild(drawArrow(result.hourly[`wind_direction_${mLevel[model]}m`][i]));
-                        windText = document.createElement('span');
-                        windText.textContent = ` ${Math.round(result.hourly[`wind_speed_${mLevel[model]}m`][i])}`;
-                        windText.setAttribute('title', `at ${mLevel[model]}m`);
-                        windSpan.appendChild(windText);
-                        windCell.appendChild(windSpan);
-                        childRow.appendChild(windCell);
-                        // create cell for wind at given pressure level
-                        // draw arrow for wind direction, add value of wind speed at given pressure level
-                        // add exact height corresponding to given pressure level (as title)
-                        windCell = document.createElement('td');
-                        windCell.setAttribute('class', 'wind3');
-                        windSpan = document.createElement('span');
-                        windSpan.setAttribute('class', 'mobileHide');
-                        windSpan.appendChild(drawArrow(result.hourly[`wind_direction_${level}`][i]));
-                        windText = document.createElement('span');
-                        windText.textContent = ` ${Math.round(result.hourly[`wind_speed_${level}`][i])}`;
-                        windText.setAttribute('title', `at ${10 * Math.round((result.hourly[`geopotential_height_${level}`][i] - result.elevation) / 10)}m`);
-                        windSpan.appendChild(windText);
-                        windCell.appendChild(windSpan);
-                        childRow.appendChild(windCell);
-                        // create cell for total clouds
-                        let cloudsCell = document.createElement('td');
-                        cloudsCell.setAttribute('class', 'clouds');
-                        cloudsCell.textContent = result.hourly.cloud_cover[i];
-                        childRow.appendChild(cloudsCell);
-                        // create cell for low clouds
-                        let cloudsLowCell = document.createElement('td');
-                        cloudsLowCell.className = 'cloudsLow';
-                        cloudsLowCell.innerHTML = `<span class="mobileHide"> | ${result.hourly.cloud_cover_low[i]}</span>`;
-                        childRow.appendChild(cloudsLowCell);
-                        // create cell for precipitation
-                        let precipitationCell = document.createElement('td');
-                        precipitationCell.setAttribute('class', 'precipitation');
-                        precipitationCell.innerHTML = `<span title="mm / ${isHourly ? 1 : 3}h">${result.hourly.precipitation[i]}</span>`;
-                        childRow.appendChild(precipitationCell);
-                        // create cell for precipitation probability
-                        let precipitationProbCell = document.createElement('td');
-                        precipitationProbCell.className = 'precipitationProb';
-                        precipitationProbCell.innerHTML = `<span class="mobileHide" title="probability"> | ${result.hourly.precipitation_probability[i] ?? '('}%</span>`;
-                        childRow.appendChild(precipitationProbCell);
-                        // create cell for planetary boundary layer height
-                        let pblCell = document.createElement('td');
-                        pblCell.setAttribute('class', 'pbl');
-                        pblCell.textContent = result.hourly.boundary_layer_height[i];
-                        childRow.appendChild(pblCell);
-                        // make old forecast gray
-                        if (datetime < currentTime) {
-                            oldData = childRow.querySelectorAll('td:not(.date)');
-                            oldData.forEach(element => element.classList.add('oldData'));
-                        }
-                        mainTable.appendChild(childRow);
-                    }
-
-                });
             }
 
             let model = document.getElementById('model').value;

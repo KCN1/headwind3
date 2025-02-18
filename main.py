@@ -2,8 +2,8 @@ import json
 from decimal import Decimal
 from typing import Optional
 
-from fastapi import FastAPI, Request, Query, Path
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, Query, Path, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -27,14 +27,23 @@ def get_root(request: Request):
 @app.get('/cities/{city_name}', response_class=HTMLResponse)
 def get_by_city(request: Request, city_name: str = Path()):
     forecasts = get_forecast(lat=cities[city_name]['lat'],
-                             lon=cities[city_name]['lon'])  # TODO: must be a Forecasts object, not just dict
+                             lon=cities[city_name]['lon'])  # TODO: must be a Forecasts object, not just a dict
     return templates.TemplateResponse(request=request, name='forecast_spot.html',
                                       context={'city': cities[city_name], 'forecasts': forecasts,
                                                'lat': cities[city_name]['lat'], 'lon': cities[city_name]['lon']})
 
 
-@app.get('/coords', response_class=HTMLResponse)
-def get_by_coords(request: Request, lat: Decimal = Query(default=56), lon: Decimal = Query(default=44),
-                  lev: Optional[Decimal] = Query(default=None)):
+@app.post('/coords', response_class=HTMLResponse)
+def get_by_coords(request: Request, lat: Decimal = Form(default=56, ge=-90, le=90),
+                  lon: Decimal = Form(default=44, gt=-180, le=180),
+                  elev: Optional[Decimal] = Form(default=None, ge=0, le=8848)):
     return templates.TemplateResponse(request=request, name='forecast_coords.html',
-                                      context={'lat': lat, 'lon': lon})  # TODO: use FileResponse instead
+                                      context={'lat': lat, 'lon': lon})
+
+
+@app.get('/coords', response_class=HTMLResponse)
+def get_by_coords(request: Request, lat: Decimal = Form(default=56, ge=-90, le=90),
+                  lon: Decimal = Form(default=44, gt=-180, le=180),
+                  elev: Optional[Decimal] = Form(default=None, ge=0, le=8848)):
+    return templates.TemplateResponse(request=request, name='forecast_coords.html',
+                                      context={'lat': lat, 'lon': lon})
