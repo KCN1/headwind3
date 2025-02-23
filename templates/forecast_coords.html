@@ -42,7 +42,7 @@
         </select> ┃ </span>
         <span>
             1ч
-            <input type="checkbox" name="hly" id="hly" disabled>
+            <input type="checkbox" name="hly" id="hly">
             <button type='submit'>Обновить</button>
             <button type='reset'>Сброс</button>
         </span>
@@ -301,10 +301,10 @@
                         pblCell.textContent = result.hourly.boundary_layer_height[i];
                         childRow.appendChild(pblCell);
                         // make old forecast gray
-                        if (datetime < currentTime) {
-                            oldData = childRow.querySelectorAll('td:not(.date)');
-                            oldData.forEach(element => element.classList.add('oldData'));
-                        }
+                        // if (datetime < currentTime) {
+                        //     oldData = childRow.querySelectorAll('td:not(.date)');
+                        //     oldData.forEach(element => element.classList.add('oldData'));
+                        // }
                         mainTable.appendChild(childRow);
                     }
 

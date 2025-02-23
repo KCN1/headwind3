@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>headwind</title>
+    <link rel="stylesheet" href="/files/styles.css">
+    <script src="/files/descriptions.js"></script>
+</head>
+<body>
+<header>
+<table width='100%'>
+    <tbody>
+        <tr>
+            <td id='welcomeTitle'>Погода {{city.where}}</td>
+            <td><a href='/'>Другие города</a></td>
+        </tr>
+    </tbody>
+</table>
+<br>
+<div align='center'><b>
+    <form style='display: inline' id='coords' name='coords' onsubmit='changeParams(event)'>
+        Координаты:
+        <input id='lat' name='lat' value={{lat}} size=4 disabled>
+        <input id='lon' name='lon' value={{lon}} size=4 disabled>
+        ┃ Высота старта: 
+        <input id='elev' name='elev' size=4 disabled> м
+        ┃ <span>Ветер на
+            <select id='lev' name='lev' onchange="changeParams(event)">
+                <option value='950hPa'>~500м абс. (950мбар)</option>
+                <option value='925hPa' selected>~750м абс. (925мбар)</option>
+                <option value='900hPa'>~1000м абс. (900мбар)</option>
+                <option value='850hPa'>~1500м абс. (850мбар)</option>
+                <option value='800hPa'>~2000м абс. (800мбар)</option>
+            </select> ┃
+        </span>
+        <span>Модель:
+        <select id='model' name='model' onchange="changeParams(event)">
+            <option value='gfs_seamless' selected>GFS 0.11-0.25°</option>
+            <option value='ecmwf_ifs025'>ECMWF 0.25°</option>
+            <option value='icon_seamless'>ICON 0.1°</option>
+        </select></span>
+        <span>
+<!--            ┃ 1ч-->
+            <input type="checkbox" name="hly" id="hly" hidden disabled>
+<!--            <button type='submit'>Обновить</button>-->
+<!--            <button type='reset'>Сброс</button>-->
+        </span>
+    </form>
+</b></div>
+<div hidden id='someshit'></div>
+<div hidden id="forecasts">{{ forecasts | tojson }}</div>
+</header>
+<main>
+<div align='center' max-width='device-width'>
+<table class='mainTable'>
+    <colgroup>
+        <col width="5%">
+        <col width="6%">
+        <col width="4%">
+        <col width="4%">
+        <col class="wind1" width="12%">
+        <col class="wind1g" width="8%">
+        <col class="wind2" width="8%">
+        <col class="wind3" width="8%">
+        <col width="5%">
+        <col class="cloudsLow" width="5%">
+        <col width="6%">
+        <col class="precipitationProb" width="5%">
+        <col width="8%">
+    </colgroup>
+    <tbody id="mainTable">
+        <tr class="tableHeader">
+            <th hidden>date&time (ISO)</th>
+            <th class="date"></th>
+            <th>Время</th>
+            <th colspan=2 style="text-align: right;" title="Температура">Темп. [°C]</th>
+            <th colspan=4 class="centered">Ветер [<nobr>м/с</nobr>]</th>
+            <th colspan=2 class="centered" title="Облачность">Обл. [%]</th>
+            <th colspan=2 class="centered">Осад&shy;ки</th>
+            <th class="pbl" title="Высота пограничного слоя">Погр. [м]</th>
+        </tr>
+        <tr></tr>
+        <tr class="tableHeader mobileHide">
+            <td class="date"></td>
+            <td>(<span id='tzone'>GMT</span>)</td>
+            <td colspan=2></td>
+            <td id="gnd">10 м</td>
+            <td class="wind1g" title="порывы"> ⇒ пор.</td>
+            <td id="h100m" class="wind2">100 м</td>
+            <td id="p925mb" class="wind3">~ 600 м</td>
+            <td>всего</td>
+            <td class="cloudsLow" title="нижний слой"> | низ.</td>
+            <td class="precipitation" id="precip">[мм]</td>
+            <td class="precipitationProb" title="вероятность"> | вер.</td>
+            <td>(GFS)</td>
+        </tr>
+        <script>
+
+            // convert forecast's local time to UTC
+            function stupidConverter(dtStr, utcOffset) {let tmp = new Date(dtStr + 'Z'); return tmp.getTime() - 1000 * utcOffset;}
+
+            // pass new coordinates, model, pressure level to getForecast()
+            function changeParams(event) {
+                event.preventDefault();
+                console.log(document.forms.coords.elements.lat.value, document.forms.coords.elements.lon.value);
+                getForecast(document.forms.coords.elements.lat.value, document.forms.coords.elements.lon.value,
+                            document.forms.coords.elements.model.value, document.forms.coords.elements.lev.value,
+                            document.forms.coords.elements.hly.checked);
+            }
+
+            function getVerbalDirection(wind_direction) {
+                discrete_direction = Math.floor((wind_direction + 11.25) / 22.5) % 16
+                return ["С", "ССВ", "СВ", "ВСВ", "В", "ВЮВ", "ЮВ", "ЮЮВ", "Ю", "ЮЮЗ", "ЮЗ", "ЗЮЗ", "З", "ЗСЗ", "СЗ", "ССЗ"][discrete_direction]
+            }
+
+<!--            function drawArrow(wind_direction) {-->
+<!--                let arrow = document.createElementNS("http://www.w3.org/2000/svg", 'svg');-->
+<!--                arrow.setAttribute('viewBox', "4 4 16 16");-->
+<!--                let arrow_title = document.createElementNS(arrow.namespaceURI, 'title');-->
+<!--                arrow_title.textContent = `${wind_direction}°`;-->
+<!--                let arrow_path = document.createElementNS(arrow.namespaceURI, 'path');-->
+<!--                arrow_path.setAttribute('d', "M15.707,15.707l-3,3a1,1,0,0,1-1.414,0l-3-3a1,1,0,0,1,1.414-1.414L11,15.586V6a1,1,0,0,1,2,0v9.586l1.293-1.293a1,1,0,0,1,1.414,1.414Z");-->
+<!--                arrow_path.setAttribute('style', 'fill:black');-->
+<!--                arrow_path.setAttribute('transform', `rotate(${wind_direction} 12 12)`);-->
+<!--                arrow.appendChild(arrow_title);-->
+<!--                arrow.appendChild(arrow_path);-->
+<!--                return arrow;-->
+<!--            }-->
+
+            // get forecast data from api.open-meteo.com loaded to hidden div "forecasts"
+            function getForecast(latitude, longitude, model, level, isHourly) {
+                const days = {'gfs_seamless': 15, 'ecmwf_ifs025': 10, 'ecmwf_aifs025': 10, 'icon_seamless': 7}[model];
+                // available "meters AGL" level for each model
+                const mLevel = {'gfs_seamless': 100, 'ecmwf_ifs025': 100, 'ecmwf_aifs025': 10, 'icon_seamless': 120};
+                // available pressure levels for each model
+                const pLevels = {'gfs_seamless': ["950hPa", "925hPa", "900hPa", "850hPa", "800hPa"],
+                                'ecmwf_ifs025': ["925hPa", "850hPa"], 'ecmwf_aifs025': ["925hPa", "850hPa"],
+                                'icon_seamless': ["950hPa", "925hPa", "900hPa", "850hPa", "800hPa"]};
+                const approxHgts = {"950hPa": 500, "925hPa": 750, "900hPa": 1000, "850hPa": 1500, "800hPa": 2000}
+                // number of rows for each date
+                const timeResol = isHourly ? 24 : 8;
+
+                const result = JSON.parse(document.getElementById('forecasts').textContent) // forecast dictionary
+                const n = days * timeResol; // length of the data range
+                const mainTable = document.getElementById('mainTable');
+                let prevDate = new Date(0); // datetime variable to store current date (forecast timezone, not UTC)
+
+                document.getElementById('tzone').textContent = result.timezone_abbreviation ?? 'GMT'; // insert timezone
+                document.getElementById('elev').setAttribute('value', result.elevation ?? '?'); // insert elevation
+                document.querySelectorAll('tr.dataRow').forEach(element => element.remove()); // delete all rows of the table except header
+
+                // assign height AGL for given pressure levels
+                document.getElementById('h100m').textContent = `${mLevel[model]} m`;
+                document.getElementById('p925mb').textContent = `~ ${50 * Math.round((approxHgts[level] - result.elevation) / 50)} m`;
+                document.getElementById('p925mb').setAttribute('title', level);
+                document.getElementById('precip').setAttribute('title', `mm / ${isHourly ? 1 : 3}h`);
+                // arrow
+                const arrow = "M15.707,15.707l-3,3a1,1,0,0,1-1.414,0l-3-3a1,1,0,0,1,1.414-1.414L11,15.586V6a1,1,0,0,1,2,0v9.586l1.293-1.293a1,1,0,0,1,1.414,1.414Z"
+
+                for (let i = 0; i < n; i++) {
+                    // new row
+                    const childRow = document.createElement('tr');
+                    childRow.setAttribute('id', `row${i}`);
+                    childRow.setAttribute('class', 'dataRow');
+
+                    // do not convert current forecast time to UTC, use Date() constructor only for date
+                    const datetime = result.hourly[model].time[i].split("T");
+                    const date = new Date(datetime[0]);
+                    const time = datetime[1];
+                    // description of the weather code cell for given model and day/night
+                    let description = descriptions[result.hourly[model].weather_code[i] ?? -1][result.hourly[model].is_day[i]  ? 'day' : 'night'];
+                    // temperature value
+                    let temperature = Math.round(result.hourly[model].temperature_2m[i]);
+                    // wind direction and speed, geopotential height at a given pressure level
+                    wind_direction_at_100m = result.hourly[model][`wind_direction_${mLevel[model]}m`][i];
+                    wind_speed_at_100m = Math.round(result.hourly[model][`wind_speed_${mLevel[model]}m`][i]);
+                    wind_direction_at_level = result.hourly[model][`wind_direction_${level}`][i];
+                    wind_speed_at_level = Math.round(result.hourly[model][`wind_speed_${level}`][i]);
+                    geopotential_height_at_level = 10 * Math.round((result.hourly[model][`geopotential_height_${level}`][i] - result.elevation) / 10);
+                    // +-----------------------+
+                    // | fill the row template |
+                    // +-----------------------+
+<!--                    <td class="time">${datetime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: "UTC"})}</td>-->
+                    childRow.innerHTML = `
+                    <td class="date"><big>${date.toLocaleDateString([], {weekday: 'short'}).toUpperCase()}</big>
+                    <br>${date.toLocaleDateString([], {month: 'numeric', day: 'numeric'})}</td>
+                    <td class="time">${time}</td>
+                    <td class="weatherCode"><img src=${description['image']} alt=${description['description']} title=${description['description']}></td>
+                    <td class="temperature">${(temperature > 0 ? "+" : "") + temperature}</td>
+                    <td class="wind1"><span>${getVerbalDirection(result.hourly[model].wind_direction_10m[i])} &nbsp; </span>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${result.hourly[model].wind_direction_10m[i]}</title>
+                    <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${result.hourly[model].wind_direction_10m[i]} 12 12)"></path></svg>
+                    <span><b>${Math.round(result.hourly[model].wind_speed_10m[i])}</b></span></td>
+                    <td class="wind1g"> ⇒ ${Math.round(result.hourly[model].wind_gusts_10m[i])}</td>
+                    <td class="wind2"><span class="mobileHide">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${wind_direction_at_100m}</title>
+                    <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${wind_direction_at_100m} 12 12)"></path></svg>
+                    <span title="at ${mLevel[model]}m"> ${wind_speed_at_100m}</span></span></td>
+                    <td class="wind3"><span class="mobileHide">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${wind_direction_at_level}</title>
+                    <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${wind_direction_at_level} 12 12)"></path></svg>
+                    <span title="at ${geopotential_height_at_level}m"> ${wind_speed_at_level}</span></span></td>
+                    <td class="clouds">${result.hourly[model].cloud_cover[i]}</td>
+                    <td class="cloudsLow"><span class="mobileHide"> | ${result.hourly[model].cloud_cover_low[i]}</span></td>
+                    <td class="precipitation"><span title="mm / 3h">${result.hourly[model].precipitation[i]}</span></td>
+                    <td class="precipitationProb"><span class="mobileHide" title="probability"> | ${result.hourly[model].precipitation_probability[i] ?? '('}%</span></td>
+                    <td class="pbl">${result.hourly[model].boundary_layer_height[i] ?? ""}</td>
+                    `
+
+                    // create date cell for a new date:
+                    let dateCell = childRow.querySelector('td.date');
+                    if (prevDate.getDate() != date.getDate()) {
+                        dateCell.setAttribute('rowspan', `${timeResol}`);
+                        if ([0, 6].includes(date.getDay())) {dateCell.classList.add('weekend');}
+                        prevDate = date;
+                        let emptyRow;
+                        // two empty rows to keep odd-even sequence
+                        for (let i = 0; i < 2; i++) {
+                            emptyRow = document.createElement('tr');
+                            emptyRow.setAttribute('class', 'dataRow');
+                            mainTable.appendChild(emptyRow);
+                        }
+                        emptyRow.setAttribute('style', 'height: 3rem');
+                    }
+                    else {
+                        dateCell.setAttribute('hidden', '');
+                    }
+
+                    mainTable.appendChild(childRow);
+                }
+            }
+
+            let model = document.getElementById('model').value;
+            let latitude = document.getElementById('lat').value;
+            let longitude = document.getElementById('lon').value;
+            let level = document.getElementById('lev').value;
+            let isHourly = document.getElementById('hly').checked;
+
+            getForecast(latitude, longitude, model, level, isHourly);
+        </script>
+    </tbody>
+</table>
+</div>
+</main>
+<footer>
+<p align=center>🄯 copyleft</p>
+</footer>
+</body>
+</html>

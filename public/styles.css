@@ -1,13 +1,13 @@
 body {font-family: Helvetica, Arial, sans-serif;}
 img {height: 5ch; object-fit: cover; vertical-align: middle; margin: -15%; filter: brightness(75%) contrast(150%);}
 svg {height: 2.5ch; vertical-align: middle;}
+a {text-decoration: none; color: blue}
 header {background: linear-gradient(#ccffff, #ffffff); padding: 1rem;}
 #coords span {display: inline-block;}
 main table {table-layout: auto; max-width: 100ch; border-collapse: collapse; margin-top: 3rem;}
 main th,td {text-align: right; padding: 0.2ch;}
 main tr:nth-child(odd) {background-color: whitesmoke;}
 main tr:nth-child(odd) .oldData {background-color: #fafafa;}
-
 .date {text-align: right; vertical-align: top; background-color: white; padding-right: 1ch; font-size: 1.2rem}
 .tableHeader {font-size: 0.9rem;}
 .tableHeader th {padding: 0.5em 0.2em;}
@@ -19,7 +19,6 @@ main tr:nth-child(odd) .oldData {background-color: #fafafa;}
 #welcomeTitle {text-align: left; font-size: 150%;}
 .cityList {margin: 40px 0 60px 0; font-size: 125%}
 .cityList td {margin: 5px; padding: 5px; text-align: left}
-
 @media (max-width: 699px) {
     .wind2, .wind3, .cloudsLow, .precipitationProb {width: 0px; padding: 0px; margin: 0px}
     .mobileHide {display: none;}
