@@ -55,6 +55,6 @@ class Forecast(BaseModel):
     elevation: Decimal
     timezone: str
     timezone_abbreviation: str
-    utc_offset_seconds: str
+    utc_offset_seconds: int
     hourly: Dict[str, HourlyForecast]
     current: Dict[str, Dict]

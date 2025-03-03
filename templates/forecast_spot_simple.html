@@ -27,11 +27,11 @@
         <input id='elev' name='elev' size=4 disabled> м
         ┃ <span>Ветер на
             <select id='lev' name='lev' onchange="changeParams(event)">
-                <option value='950hPa'>~500м абс. (950мбар)</option>
-                <option value='925hPa' selected>~750м абс. (925мбар)</option>
-                <option value='900hPa'>~1000м абс. (900мбар)</option>
-                <option value='850hPa'>~1500м абс. (850мбар)</option>
-                <option value='800hPa'>~2000м абс. (800мбар)</option>
+                <option value='950hPa'>~500м абс. (950гПа)</option>
+                <option value='925hPa' selected>~750м абс. (925гПа)</option>
+                <option value='900hPa'>~1000м абс. (900гПа)</option>
+                <option value='850hPa'>~1500м абс. (850гПа)</option>
+                <option value='800hPa'>~2000м абс. (800гПа)</option>
             </select> ┃
         </span>
         <span>Модель:
@@ -66,8 +66,8 @@
         <col width="5%">
         <col class="cloudsLow" width="5%">
         <col width="6%">
-        <col class="precipitationProb" width="5%">
-        <col width="8%">
+        <col class="precipitationProb" width="6%">
+        <col width="7%">
     </colgroup>
     <tbody id="mainTable">
         <tr class="tableHeader">
@@ -85,20 +85,20 @@
             <td class="date"></td>
             <td>(<span id='tzone'>GMT</span>)</td>
             <td colspan=2></td>
-            <td id="gnd">10 м</td>
-            <td class="wind1g" title="порывы"> ⇒ пор.</td>
+            <td id="gnd">на 10 м</td>
+            <td class="wind1g" title="порывы"> ⇨ пор.</td>
             <td id="h100m" class="wind2">100 м</td>
             <td id="p925mb" class="wind3">~ 600 м</td>
             <td>всего</td>
-            <td class="cloudsLow" title="нижний слой"> | низ.</td>
+            <td class="cloudsLow" title="нижний слой"> <b>|</b> низ.</td>
             <td class="precipitation" id="precip">[мм]</td>
-            <td class="precipitationProb" title="вероятность"> | вер.</td>
+            <td class="precipitationProb" title="вероятность"> <b>|</b> вер.</td>
             <td>(GFS)</td>
         </tr>
         <script>
 
             // convert forecast's local time to UTC
-            function stupidConverter(dtStr, utcOffset) {let tmp = new Date(dtStr + 'Z'); return tmp.getTime() - 1000 * utcOffset;}
+            // function stupidConverter(dtStr, utcOffset) {let tmp = new Date(dtStr + 'Z'); return tmp.getTime() - 1000 * utcOffset;}
 
             // pass new coordinates, model, pressure level to getForecast()
             function changeParams(event) {
@@ -113,20 +113,6 @@
                 discrete_direction = Math.floor((wind_direction + 11.25) / 22.5) % 16
                 return ["С", "ССВ", "СВ", "ВСВ", "В", "ВЮВ", "ЮВ", "ЮЮВ", "Ю", "ЮЮЗ", "ЮЗ", "ЗЮЗ", "З", "ЗСЗ", "СЗ", "ССЗ"][discrete_direction]
             }
-
-<!--            function drawArrow(wind_direction) {-->
-<!--                let arrow = document.createElementNS("http://www.w3.org/2000/svg", 'svg');-->
-<!--                arrow.setAttribute('viewBox', "4 4 16 16");-->
-<!--                let arrow_title = document.createElementNS(arrow.namespaceURI, 'title');-->
-<!--                arrow_title.textContent = `${wind_direction}°`;-->
-<!--                let arrow_path = document.createElementNS(arrow.namespaceURI, 'path');-->
-<!--                arrow_path.setAttribute('d', "M15.707,15.707l-3,3a1,1,0,0,1-1.414,0l-3-3a1,1,0,0,1,1.414-1.414L11,15.586V6a1,1,0,0,1,2,0v9.586l1.293-1.293a1,1,0,0,1,1.414,1.414Z");-->
-<!--                arrow_path.setAttribute('style', 'fill:black');-->
-<!--                arrow_path.setAttribute('transform', `rotate(${wind_direction} 12 12)`);-->
-<!--                arrow.appendChild(arrow_title);-->
-<!--                arrow.appendChild(arrow_path);-->
-<!--                return arrow;-->
-<!--            }-->
 
             // get forecast data from api.open-meteo.com loaded to hidden div "forecasts"
             function getForecast(latitude, longitude, model, level, isHourly) {
@@ -144,7 +130,7 @@
                 const result = JSON.parse(document.getElementById('forecasts').textContent) // forecast dictionary
                 const n = days * timeResol; // length of the data range
                 const mainTable = document.getElementById('mainTable');
-                let prevDate = new Date(0); // datetime variable to store current date (forecast timezone, not UTC)
+                let prevDate = 0; // current day of month (forecast timezone, not UTC)
 
                 document.getElementById('tzone').textContent = result.timezone_abbreviation ?? 'GMT'; // insert timezone
                 document.getElementById('elev').setAttribute('value', result.elevation ?? '?'); // insert elevation
@@ -178,27 +164,27 @@
                     wind_direction_at_level = result.hourly[model][`wind_direction_${level}`][i];
                     wind_speed_at_level = Math.round(result.hourly[model][`wind_speed_${level}`][i]);
                     geopotential_height_at_level = 10 * Math.round((result.hourly[model][`geopotential_height_${level}`][i] - result.elevation) / 10);
+
                     // +-----------------------+
                     // | fill the row template |
                     // +-----------------------+
-<!--                    <td class="time">${datetime.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', hour12: false, timeZone: "UTC"})}</td>-->
                     childRow.innerHTML = `
                     <td class="date"><big>${date.toLocaleDateString([], {weekday: 'short'}).toUpperCase()}</big>
                     <br>${date.toLocaleDateString([], {month: 'numeric', day: 'numeric'})}</td>
                     <td class="time">${time}</td>
                     <td class="weatherCode"><img src=${description['image']} alt=${description['description']} title=${description['description']}></td>
                     <td class="temperature">${(temperature > 0 ? "+" : "") + temperature}</td>
-                    <td class="wind1"><span>${getVerbalDirection(result.hourly[model].wind_direction_10m[i])} &nbsp; </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${result.hourly[model].wind_direction_10m[i]}</title>
+                    <td class="wind1"><span class="wind1v">${getVerbalDirection(result.hourly[model].wind_direction_10m[i])}&nbsp; </span>
+                    <svg class="mobileHide" xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${result.hourly[model].wind_direction_10m[i]}°</title>
                     <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${result.hourly[model].wind_direction_10m[i]} 12 12)"></path></svg>
                     <span><b>${Math.round(result.hourly[model].wind_speed_10m[i])}</b></span></td>
-                    <td class="wind1g"> ⇒ ${Math.round(result.hourly[model].wind_gusts_10m[i])}</td>
+                    <td class="wind1g"> ⇨ ${Math.round(result.hourly[model].wind_gusts_10m[i])}</td>
                     <td class="wind2"><span class="mobileHide">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${wind_direction_at_100m}</title>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${wind_direction_at_100m}°</title>
                     <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${wind_direction_at_100m} 12 12)"></path></svg>
                     <span title="at ${mLevel[model]}m"> ${wind_speed_at_100m}</span></span></td>
                     <td class="wind3"><span class="mobileHide">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${wind_direction_at_level}</title>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16"><title>${wind_direction_at_level}°</title>
                     <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${wind_direction_at_level} 12 12)"></path></svg>
                     <span title="at ${geopotential_height_at_level}m"> ${wind_speed_at_level}</span></span></td>
                     <td class="clouds">${result.hourly[model].cloud_cover[i]}</td>
@@ -207,13 +193,16 @@
                     <td class="precipitationProb"><span class="mobileHide" title="probability"> | ${result.hourly[model].precipitation_probability[i] ?? '('}%</span></td>
                     <td class="pbl">${result.hourly[model].boundary_layer_height[i] ?? ""}</td>
                     `
+                    // +-------------------------+
+                    // | end of the row template |
+                    // +-------------------------+
 
                     // create date cell for a new date:
                     let dateCell = childRow.querySelector('td.date');
-                    if (prevDate.getDate() != date.getDate()) {
+                    if (prevDate != date.getDate()) {
                         dateCell.setAttribute('rowspan', `${timeResol}`);
                         if ([0, 6].includes(date.getDay())) {dateCell.classList.add('weekend');}
-                        prevDate = date;
+                        prevDate = date.getDate();
                         let emptyRow;
                         // two empty rows to keep odd-even sequence
                         for (let i = 0; i < 2; i++) {

@@ -9,11 +9,12 @@ main th,td {text-align: right; padding: 0.2ch;}
 main tr:nth-child(odd) {background-color: whitesmoke;}
 main tr:nth-child(odd) .oldData {background-color: #fafafa;}
 .date {text-align: right; vertical-align: top; background-color: white; padding-right: 1ch; font-size: 1.2rem}
-.tableHeader {font-size: 0.9rem;}
+.tableHeader {font-size: 90%;}
 .tableHeader th {padding: 0.5em 0.2em;}
 .oldData {color: darkgray;}
 .oldData img, .oldData svg {filter: contrast(25%) brightness(150%);}
 .cloudsLow, .precipitationProb, .wind1g, .wind2, .wind3 {text-align: left;}
+.wind1v {font-size: 0.9rem;}
 .weekend {color: red;}
 .centered {text-align: center;}
 #welcomeTitle {text-align: left; font-size: 150%;}
@@ -23,9 +24,11 @@ main tr:nth-child(odd) .oldData {background-color: #fafafa;}
     .wind2, .wind3, .cloudsLow, .precipitationProb {width: 0px; padding: 0px; margin: 0px}
     .mobileHide {display: none;}
     .date {padding-right: 0.5ch; font-size: 1rem;}
-    .cityList ul {columns: 1;}
+    .cityList ul {columns: 1; font-size: 100%}
+    #welcomeTitle {font-size: 125%}
 }
 @media (max-width: 499px) {
     body {font-family: "Helvetica Narrow", "Arial Narrow", Helvetica, Arial, sans-serif;}
     input, textarea, select, button {font-family:inherit;}
+    .wind1v {font-size: 80%;}
 }

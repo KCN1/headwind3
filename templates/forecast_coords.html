@@ -27,11 +27,11 @@
         <input id='elev' name='elev' size=4 disabled> м
         ┃ <span>Ветер на
             <select id='lev' name='lev'>
-                <option value='950hPa'>~500м абс. (950мбар)</option>
-                <option value='925hPa' selected>~750м абс. (925мбар)</option>
-                <option value='900hPa'>~1000м абс. (900мбар)</option>
-                <option value='850hPa'>~1500м абс. (850мбар)</option>
-                <option value='800hPa'>~2000м абс. (800мбар)</option>
+                <option value='950hPa'>~500м абс. (950гПа)</option>
+                <option value='925hPa' selected>~750м абс. (925гПа)</option>
+                <option value='900hPa'>~1000м абс. (900гПа)</option>
+                <option value='850hPa'>~1500м абс. (850гПа)</option>
+                <option value='800hPa'>~2000м абс. (800гПа)</option>
             </select> ┃
         </span>
         <span>Модель:
@@ -91,7 +91,7 @@
             <td>всего</td>
             <td class="cloudsLow" title="нижний слой"> | низ.</td>
             <td class="precipitation" id="precip">[мм]</td>
-            <td class="precipitationProb" title="вероятность"> | вер.</td>
+            <td class="precipitationProb" title="вероятность"> | [%]</td>
             <td>(GFS)</td>
         </tr>
         <script>
@@ -293,7 +293,7 @@
                         // create cell for precipitation probability
                         let precipitationProbCell = document.createElement('td');
                         precipitationProbCell.className = 'precipitationProb';
-                        precipitationProbCell.innerHTML = `<span class="mobileHide" title="probability"> | ${result.hourly.precipitation_probability[i] ?? '('}%</span>`;
+                        precipitationProbCell.innerHTML = `<span class="mobileHide" title="probability"> | ${result.hourly.precipitation_probability[i] ?? '?'}</span>`;
                         childRow.appendChild(precipitationProbCell);
                         // create cell for planetary boundary layer height
                         let pblCell = document.createElement('td');

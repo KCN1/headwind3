@@ -1,7 +1,8 @@
 from typing import Optional
 from decimal import Decimal
 from pprint import pprint
-import requests_cache
+from requests_cache import RedisCache, CachedSession
+
 from schemas.forecast import Forecast, HourlyForecast
 
 MODELS = ['gfs_seamless', 'ecmwf_ifs025', 'ecmwf_aifs025', 'icon_seamless']
@@ -28,7 +29,7 @@ def get_forecast(*, lat: Decimal, lon: Decimal, elev: Optional[Decimal] = None):
     temporal_resolution = 'hourly_3'
     wind_levels = ["100m", "120m", "950hPa", "925hPa", "900hPa", "850hPa", "800hPa"]
 
-    with requests_cache.CachedSession('cache/cache_openmeteo', expire_after=3600) as cache_session:
+    with CachedSession(expire_after=3600, backend=RedisCache()) as cache_session:
         url = "https://api.open-meteo.com/v1/forecast"
         params = {
             "timezone": "auto",
@@ -41,7 +42,7 @@ def get_forecast(*, lat: Decimal, lon: Decimal, elev: Optional[Decimal] = None):
                        "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m",
                        *[f"wind_speed_{level}" for level in wind_levels],
                        *[f"wind_direction_{level}" for level in wind_levels],
-                       *[f"geopotential_height_{level}" for level in wind_levels if level[-1] != 'm'],
+                       *[f"geopotential_height_{level}" for level in wind_levels if level.endswith('hPa')],
                        "cloud_cover", "cloud_cover_low", "weather_code",
                        "boundary_layer_height", "is_day"],
             "current": ["boundary_layer_height"],
