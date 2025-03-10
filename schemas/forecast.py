@@ -1,3 +1,4 @@
+"""Old schema, to be deleted."""
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional, Dict
