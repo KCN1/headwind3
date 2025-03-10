@@ -65,7 +65,7 @@ def api_by_city(city_name: str = Path()) -> Forecast:
 def api_by_coords(lat: Decimal = Query(default=56, ge=-90, le=90),
                   lon: Decimal = Query(default=44, gt=-180, le=180),
                   elev: Optional[Decimal] = Query(default=None, ge=0, le=8848)):
-    """Redirect to Open-meteo API"""
+    """Redirect to Open-meteo API."""
     pass
 
 
@@ -73,17 +73,17 @@ def api_by_coords(lat: Decimal = Query(default=56, ge=-90, le=90),
 def api_by_coords(lat: Decimal = Form(default=56, ge=-90, le=90),
                   lon: Decimal = Form(default=44, gt=-180, le=180),
                   elev: Optional[Decimal] = Form(default=None, ge=0, le=8848)):
-    """Redirect to Open-meteo API"""
+    """Redirect to Open-meteo API."""
     pass
 
 
 @app.get('/api/v1/{city_name}', tags=["Forecast by city", "API"])
 def api_by_city_redirect(city_name: str = Path()):
-    """Redirect to /api/v1/cities{city_name}"""
+    """Redirect to /api/v1/cities/{city_name}"""
     return RedirectResponse(f'/api/v1/cities/{city_name}')
 
 
 @app.get('/api/v1', tags=["List of cities", "API"])
 def api_cities():
-    """Returns list of cities"""
+    """Returns a list of cities."""
     return cities
