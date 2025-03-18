@@ -1,4 +1,5 @@
-# TODO: async endpoint handlers, redis caching, limiting requests to open-meteo
+# TODO: async endpoint handlers, redis caching, limiting requests to open-meteo, fetch vs. template: dynamic vs. static
+
 import json
 from decimal import Decimal
 from typing import Optional
@@ -77,7 +78,7 @@ def api_by_coords(lat: Decimal = Form(default=56, ge=-90, le=90),
     pass
 
 
-@app.get('/api/v1/{city_name}', tags=["Forecast by city", "API"])
+@app.get('/api/v1/{city_name}', tags=["Redirect"])
 def api_by_city_redirect(city_name: str = Path()):
     """Redirect to /api/v1/cities/{city_name}"""
     return RedirectResponse(f'/api/v1/cities/{city_name}')
@@ -87,3 +88,9 @@ def api_by_city_redirect(city_name: str = Path()):
 def api_cities():
     """Returns a list of cities."""
     return cities
+
+
+@app.get('/api', tags=["Redirect"])
+def api_cities_redirect():
+    """Redirect to /api/v1"""
+    return RedirectResponse('/api/v1')

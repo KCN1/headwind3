@@ -43,13 +43,10 @@
         <span>
 <!--            ┃ 1ч-->
             <input type="checkbox" name="hly" id="hly" hidden disabled>
-<!--            <button type='submit'>Обновить</button>-->
-<!--            <button type='reset'>Сброс</button>-->
         </span>
     </form>
 </b></div>
 <div hidden id='someshit'></div>
-<div hidden id="forecasts">{{ forecasts }}</div>
 </header>
 <main>
 <div align='center' max-width='device-width'>
@@ -107,12 +104,13 @@
             }
 
             function getVerbalDirection(wind_direction) {
-                discrete_direction = Math.floor((wind_direction + 11.25) / 22.5) % 16
+                discrete_direction = Math.floor((wind_direction + (360 / 32)) / (360 / 16)) % 16
                 return ["С", "ССВ", "СВ", "ВСВ", "В", "ВЮВ", "ЮВ", "ЮЮВ", "Ю", "ЮЮЗ", "ЮЗ", "ЗЮЗ", "З", "ЗСЗ", "СЗ", "ССЗ"][discrete_direction]
             }
 
             // get forecast data from api.open-meteo.com loaded to hidden div "forecasts"
             function getForecast(latitude, longitude, model, level, isHourly) {
+                // TODO: move constants above functions
                 const days = {'gfs_seamless': 15, 'ecmwf_ifs025': 10, 'ecmwf_aifs025': 10, 'icon_seamless': 7}[model];
                 // available "meters AGL" level for each model
                 const mLevel = {'gfs_seamless': 100, 'ecmwf_ifs025': 100, 'ecmwf_aifs025': 10, 'icon_seamless': 120};
@@ -122,14 +120,16 @@
                                 'icon_seamless': ["950hPa", "925hPa", "900hPa", "850hPa", "800hPa"]};
                 const approxHgts = {"950hPa": 500, "925hPa": 750, "900hPa": 1000, "850hPa": 1500, "800hPa": 2000,
                                     "700hPa": 3000, "600hPa": 4200, "500hPa": 5500}
-                // number of rows for each date
+
+                // number of rows for each date (TODO: move above functions)
                 const timeResol = isHourly ? 24 : 8;
 
-                const result = JSON.parse(document.getElementById('forecasts').textContent) // forecast dictionary
+                // get forecast from backend (TODO: move above functions)
+                const result = JSON.parse({{ forecasts | tojson }})
                 const n = days * timeResol; // length of the data range
                 const mainTable = document.getElementById('mainTable');
                 let prevDate = 0; // current day of month (forecast timezone, not UTC)
-
+                // reset the main table
                 document.getElementById('tzone').textContent = result.timezone_abbreviation ?? 'GMT'; // insert timezone
                 document.getElementById('elev').setAttribute('value', result.elevation ?? '?'); // insert elevation
                 document.querySelectorAll('tr.dataRow').forEach(element => element.remove()); // delete all rows of the table except header
@@ -162,9 +162,9 @@
                     let wind_speed_at_level = result.hourly[model][`wind_speed_${level}`][i];
                     let geopotential_height = 10 * Math.round((result.hourly[model][`geopotential_height_${level}`][i] - result.elevation) / 10);
 
-                    // +-----------------------+
-                    // | fill the row template |
-                    // +-----------------------+
+                    // +-------------------+
+                    // | fill row template |
+                    // +-------------------+
                     childRow.innerHTML = `
                     <td class="date">
                         <big>${date.toLocaleDateString([], {weekday: 'short'}).toUpperCase()}</big>
@@ -212,9 +212,9 @@
                     </td>
                     <td class="pbl">${result.hourly[model].boundary_layer_height[i] ?? ""}</td>
                     `
-                    // +-------------------------+
-                    // | end of the row template |
-                    // +-------------------------+
+                    // +---------------------+
+                    // | end of row template |
+                    // +---------------------+
 
                     // create date cell for a new date:
                     let dateCell = childRow.querySelector('td.date');
@@ -246,6 +246,7 @@
             let isHourly = document.getElementById('hly').checked;
 
             getForecast(latitude, longitude, model, level, isHourly);
+
         </script>
     </tbody>
 </table>
