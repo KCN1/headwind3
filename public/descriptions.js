@@ -21,21 +21,21 @@ const descriptions = {
     },
     "1":{
         "day":{
-            "description":"Mainly Sunny",
+            "description":"Mainly&nbsp;Sunny",
             "image":"http://openweathermap.org/img/wn/01d@2x.png"
         },
         "night":{
-            "description":"Mainly Clear",
+            "description":"Mainly&nbsp;Clear",
             "image":"http://openweathermap.org/img/wn/01n@2x.png"
         }
     },
     "2":{
         "day":{
-            "description":"Partly Cloudy",
+            "description":"Partly&nbsp;Cloudy",
             "image":"http://openweathermap.org/img/wn/02d@2x.png"
         },
         "night":{
-            "description":"Partly Cloudy",
+            "description":"Partly&nbsp;Cloudy",
             "image":"http://openweathermap.org/img/wn/02n@2x.png"
         }
     },
@@ -61,21 +61,21 @@ const descriptions = {
     },
     "48":{
         "day":{
-            "description":"Rime Fog",
+            "description":"Rime&nbsp;Fog",
             "image":"http://openweathermap.org/img/wn/50d@2x.png"
         },
         "night":{
-            "description":"Rime Fog",
+            "description":"Rime&nbsp;Fog",
             "image":"http://openweathermap.org/img/wn/50n@2x.png"
         }
     },
     "51":{
         "day":{
-            "description":"Light Drizzle",
+            "description":"Light&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09d@2x.png"
         },
         "night":{
-            "description":"Light Drizzle",
+            "description":"Light&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09n@2x.png"
         }
     },
@@ -91,41 +91,41 @@ const descriptions = {
     },
     "55":{
         "day":{
-            "description":"Heavy Drizzle",
+            "description":"Heavy&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09d@2x.png"
         },
         "night":{
-            "description":"Heavy Drizzle",
+            "description":"Heavy&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09n@2x.png"
         }
     },
     "56":{
         "day":{
-            "description":"Light Freezing Drizzle",
+            "description":"Light&nbsp;Freezing&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09d@2x.png"
         },
         "night":{
-            "description":"Light Freezing Drizzle",
+            "description":"Light&nbsp;Freezing&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09n@2x.png"
         }
     },
     "57":{
         "day":{
-            "description":"Freezing Drizzle",
+            "description":"Freezing&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09d@2x.png"
         },
         "night":{
-            "description":"Freezing Drizzle",
+            "description":"Freezing&nbsp;Drizzle",
             "image":"http://openweathermap.org/img/wn/09n@2x.png"
         }
     },
     "61":{
         "day":{
-            "description":"Light Rain",
+            "description":"Light&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10d@2x.png"
         },
         "night":{
-            "description":"Light Rain",
+            "description":"Light&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10n@2x.png"
         }
     },
@@ -141,41 +141,41 @@ const descriptions = {
     },
     "65":{
         "day":{
-            "description":"Heavy Rain",
+            "description":"Heavy&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10d@2x.png"
         },
         "night":{
-            "description":"Heavy Rain",
+            "description":"Heavy&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10n@2x.png"
         }
     },
     "66":{
         "day":{
-            "description":"Light Freezing Rain",
+            "description":"Light&nbsp;Freezing&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10d@2x.png"
         },
         "night":{
-            "description":"Light Freezing Rain",
+            "description":"Light&nbsp;Freezing&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10n@2x.png"
         }
     },
     "67":{
         "day":{
-            "description":"Freezing Rain",
+            "description":"Freezing&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10d@2x.png"
         },
         "night":{
-            "description":"Freezing Rain",
+            "description":"Freezing&nbsp;Rain",
             "image":"http://openweathermap.org/img/wn/10n@2x.png"
         }
     },
     "71":{
         "day":{
-            "description":"Light Snow",
+            "description":"Light&nbsp;Snow",
             "image":"http://openweathermap.org/img/wn/13d@2x.png"
         },
         "night":{
-            "description":"Light Snow",
+            "description":"Light&nbsp;Snow",
             "image":"http://openweathermap.org/img/wn/13n@2x.png"
         }
     },
@@ -191,31 +191,31 @@ const descriptions = {
     },
     "75":{
         "day":{
-            "description":"Heavy Snow",
+            "description":"Heavy&nbsp;Snow",
             "image":"http://openweathermap.org/img/wn/13d@2x.png"
         },
         "night":{
-            "description":"Heavy Snow",
+            "description":"Heavy&nbsp;Snow",
             "image":"http://openweathermap.org/img/wn/13n@2x.png"
         }
     },
     "77":{
         "day":{
-            "description":"Snow Grains",
+            "description":"Snow&nbsp;Grains",
             "image":"http://openweathermap.org/img/wn/13d@2x.png"
         },
         "night":{
-            "description":"Snow Grains",
+            "description":"Snow&nbsp;Grains",
             "image":"http://openweathermap.org/img/wn/13n@2x.png"
         }
     },
     "80":{
         "day":{
-            "description":"Light Showers",
+            "description":"Light&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/09d@2x.png"
         },
         "night":{
-            "description":"Light Showers",
+            "description":"Light&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/09n@2x.png"
         }
     },
@@ -231,31 +231,31 @@ const descriptions = {
     },
     "82":{
         "day":{
-            "description":"Heavy Showers",
+            "description":"Heavy&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/09d@2x.png"
         },
         "night":{
-            "description":"Heavy Showers",
+            "description":"Heavy&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/09n@2x.png"
         }
     },
     "85":{
         "day":{
-            "description":"Light Snow Showers",
+            "description":"Light&nbsp;Snow&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/13d@2x.png"
         },
         "night":{
-            "description":"Light Snow Showers",
+            "description":"Light&nbsp;Snow&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/13n@2x.png"
         }
     },
     "86":{
         "day":{
-            "description":"Snow Showers",
+            "description":"Snow&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/13d@2x.png"
         },
         "night":{
-            "description":"Snow Showers",
+            "description":"Snow&nbsp;Showers",
             "image":"http://openweathermap.org/img/wn/13n@2x.png"
         }
     },
@@ -271,21 +271,21 @@ const descriptions = {
     },
     "96":{
         "day":{
-            "description":"Light Thunderstorms With Hail",
+            "description":"Light&nbsp;Thunderstorms&nbsp;With&nbsp;Hail",
             "image":"http://openweathermap.org/img/wn/11d@2x.png"
         },
         "night":{
-            "description":"Light Thunderstorms With Hail",
+            "description":"Light&nbsp;Thunderstorms&nbsp;With&nbsp;Hail",
             "image":"http://openweathermap.org/img/wn/11n@2x.png"
         }
     },
     "99":{
         "day":{
-            "description":"Thunderstorm With Hail",
+            "description":"Thunderstorm&nbsp;With&nbsp;Hail",
             "image":"http://openweathermap.org/img/wn/11d@2x.png"
         },
         "night":{
-            "description":"Thunderstorm With Hail",
+            "description":"Thunderstorm&nbsp;With&nbsp;Hail",
             "image":"http://openweathermap.org/img/wn/11n@2x.png"
         }
     }

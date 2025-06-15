@@ -21,7 +21,7 @@ OPENMETEO_PARAMS = {
                        "cloud_cover", "cloud_cover_low", "weather_code",
                        "boundary_layer_height", "is_day"],
             "current": ["is_day"],
-            "models": [WEATHER_MODELS]  # "gfs_global" up to 16 days, "ecmwf_ifs025" up to 10 days
+            "models": WEATHER_MODELS  # "gfs_global" up to 16 days, "ecmwf_ifs025" up to 10 days
         }
 
 

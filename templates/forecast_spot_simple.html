@@ -40,13 +40,13 @@
             <option value='ecmwf_ifs025'>ECMWF 0.25°</option>
             <option value='icon_seamless'>ICON 0.1°</option>
         </select></span>
-        <span>
-<!--            ┃ 1ч-->
-            <input type="checkbox" name="hly" id="hly" hidden disabled>
+        <span title="почасовой прогноз">
+            ┃ 1ч
+            <input type="checkbox" name="hly" id="hly" disabled>
         </span>
     </form>
 </b></div>
-<div hidden id='someshit'></div>
+<!--<div hidden id='someshit'></div>-->
 </header>
 <main>
 <div align='center' max-width='device-width'>
@@ -54,17 +54,18 @@
     <colgroup>
         <col width="5%">
         <col width="6%">
-        <col width="4%">
-        <col width="4%">
-        <col class="wind1" width="12%">
-        <col class="wind1g" width="8%">
-        <col class="wind2" width="8%">
-        <col class="wind3" width="8%">
         <col width="5%">
-        <col class="cloudsLow" width="5%">
+        <col width="4%">
+        <col class="wind1v" width="6%">
+        <col class="wind1" width="5%">
+        <col class="wind1g" width="6%">
+        <col class="wind2" width="6%">
+        <col class="wind3" width="5%">
+        <col width="4%">
+        <col class="cloudsLow" width="4%">
+        <col width="4%">
+        <col class="precipitationProb" width="4%">
         <col width="6%">
-        <col class="precipitationProb" width="6%">
-        <col width="7%">
     </colgroup>
     <tbody id="mainTable">
         <tr class="tableHeader">
@@ -72,7 +73,7 @@
             <th class="date"></th>
             <th>Время</th>
             <th colspan=2 style="text-align: right;" title="Температура">Темп. [°C]</th>
-            <th colspan=4 class="centered">Ветер [<nobr>м/с</nobr>]</th>
+            <th colspan=5 class="centered">Ветер [<nobr>м/с</nobr>]</th>
             <th colspan=2 class="centered" title="Облачность">Обл. [%]</th>
             <th colspan=2 class="centered">Осад&shy;ки</th>
             <th class="pbl" title="Высота пограничного слоя">Погр. [м]</th>
@@ -82,19 +83,19 @@
             <td class="date"></td>
             <td>(<span id='tzone'>GMT</span>)</td>
             <td colspan=2></td>
-            <td id="gnd">на 10 м</td>
+            <td colspan=2 id="gnd">на 10 м&nbsp;</td>
             <td class="wind1g" title="порывы"> ⇨ пор.</td>
             <td id="h100m" class="wind2">100 м</td>
-            <td id="p925mb" class="wind3">~ 600 м</td>
+            <td id="p925mb" class="wind3">~600 м</td>
             <td>всего</td>
-            <td class="cloudsLow" title="нижний слой"> <b>|</b> низ.</td>
+            <td class="cloudsLow" title="нижний слой"> <b>|</b> низк.</td>
             <td class="precipitation" id="precip">[мм]</td>
             <td class="precipitationProb" title="вероятность"> <b>|</b> вер.</td>
             <td>(GFS)</td>
         </tr>
         <script>
 
-            // pass new coordinates, model, pressure level to getForecast()
+<!--            pass new coordinates, model, pressure level to getForecast()-->
             function changeParams(event) {
                 event.preventDefault();
                 console.log(document.forms.coords.elements.lat.value, document.forms.coords.elements.lon.value);
@@ -108,63 +109,62 @@
                 return ["С", "ССВ", "СВ", "ВСВ", "В", "ВЮВ", "ЮВ", "ЮЮВ", "Ю", "ЮЮЗ", "ЮЗ", "ЗЮЗ", "З", "ЗСЗ", "СЗ", "ССЗ"][discrete_direction]
             }
 
-            // get forecast data from api.open-meteo.com loaded to hidden div "forecasts"
+<!--            get forecast data from api.open-meteo.com-->
             function getForecast(latitude, longitude, model, level, isHourly) {
-                // TODO: move constants above functions
+
                 const days = {'gfs_seamless': 15, 'ecmwf_ifs025': 10, 'ecmwf_aifs025': 10, 'icon_seamless': 7}[model];
-                // available "meters AGL" level for each model
+<!--                height levels-->
                 const mLevel = {'gfs_seamless': 100, 'ecmwf_ifs025': 100, 'ecmwf_aifs025': 10, 'icon_seamless': 120};
-                // available pressure levels for each model
+<!--                pressure levels-->
                 const pLevels = {'gfs_seamless': ["950hPa", "925hPa", "900hPa", "850hPa", "800hPa"],
                                 'ecmwf_ifs025': ["925hPa", "850hPa"], 'ecmwf_aifs025': ["925hPa", "850hPa"],
                                 'icon_seamless': ["950hPa", "925hPa", "900hPa", "850hPa", "800hPa"]};
                 const approxHgts = {"950hPa": 500, "925hPa": 750, "900hPa": 1000, "850hPa": 1500, "800hPa": 2000,
                                     "700hPa": 3000, "600hPa": 4200, "500hPa": 5500}
 
-                // number of rows for each date (TODO: move above functions)
                 const timeResol = isHourly ? 24 : 8;
 
-                // get forecast from backend (TODO: move above functions)
+<!--                get forecast from backend-->
                 const result = JSON.parse({{ forecasts | tojson }})
                 const n = days * timeResol; // length of the data range
                 const mainTable = document.getElementById('mainTable');
                 let prevDate = 0; // current day of month (forecast timezone, not UTC)
-                // reset the main table
+<!--                reset the main table-->
                 document.getElementById('tzone').textContent = result.timezone_abbreviation ?? 'GMT'; // insert timezone
                 document.getElementById('elev').setAttribute('value', result.elevation ?? '?'); // insert elevation
                 document.querySelectorAll('tr.dataRow').forEach(element => element.remove()); // delete all rows of the table except header
 
-                // assign height AGL for given pressure levels
+<!--                assign height AGL for each pressure level-->
                 document.getElementById('h100m').textContent = `${mLevel[model]} m`;
-                document.getElementById('p925mb').textContent = `~ ${50 * Math.round((approxHgts[level] - result.elevation) / 50)} m`;
+                document.getElementById('p925mb').textContent = `~${50 * Math.round((approxHgts[level] - result.elevation) / 50)} m`;
                 document.getElementById('p925mb').setAttribute('title', level);
                 document.getElementById('precip').setAttribute('title', `mm / ${isHourly ? 1 : 3}h`);
-                // arrow SVG path
+<!--                SVG arrow-->
                 const arrow = "M15.707,15.707l-3,3a1,1,0,0,1-1.414,0l-3-3a1,1,0,0,1,1.414-1.414L11,15.586V6a1,1,0,0,1,2,0v9.586l1.293-1.293a1,1,0,0,1,1.414,1.414Z"
 
                 for (let i = 0; i < n; i++) {
-                    // new row
+<!--                    new row-->
                     const childRow = document.createElement('tr');
                     childRow.setAttribute('id', `row${i}`);
                     childRow.setAttribute('class', 'dataRow');
 
-                    // do not convert current forecast time to UTC, use Date() constructor only for date
+<!--                    do not convert current forecast time to UTC, use Date() constructor only for date-->
                     const datetime = result.hourly[model].time[i].split("T");
                     const date = new Date(datetime[0]);
                     const time = datetime[1];
 
-                    // description of the weather code cell for given model and day/night
+<!--                    description of the weather code cell for given model and day/night-->
                     let description = descriptions[result.hourly[model].weather_code[i] ?? -1][result.hourly[model].is_day[i]  ? 'day' : 'night'];
-                    // wind direction and speed, geopotential height at a given pressure level
+<!--                    wind direction and speed, geopotential height at a given pressure level-->
                     let wind_direction_at_100m = result.hourly[model][`wind_direction_${mLevel[model]}m`][i];
                     let wind_speed_at_100m = result.hourly[model][`wind_speed_${mLevel[model]}m`][i];
                     let wind_direction_at_level = result.hourly[model][`wind_direction_${level}`][i];
                     let wind_speed_at_level = result.hourly[model][`wind_speed_${level}`][i];
                     let geopotential_height = 10 * Math.round((result.hourly[model][`geopotential_height_${level}`][i] - result.elevation) / 10);
 
-                    // +-------------------+
-                    // | fill row template |
-                    // +-------------------+
+                    // +-----------------------+
+                    // | fill the row template |
+                    // +-----------------------+
                     childRow.innerHTML = `
                     <td class="date">
                         <big>${date.toLocaleDateString([], {weekday: 'short'}).toUpperCase()}</big>
@@ -175,22 +175,22 @@
                         <img src=${description['image']} alt=${description['description']} title=${description['description']}>
                     </td>
                     <td class="temperature">${(result.hourly[model].temperature_2m[i] > 0 ? "+" : "") + result.hourly[model].temperature_2m[i]}</td>
+                    <td class="wind1v">${getVerbalDirection(result.hourly[model].wind_direction_10m[i])}</td>
                     <td class="wind1">
-                        <span class="wind1v">${getVerbalDirection(result.hourly[model].wind_direction_10m[i])}&nbsp; </span>
                         <svg class="mobileHide" xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16">
                             <title>${result.hourly[model].wind_direction_10m[i]}°</title>
                             <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${result.hourly[model].wind_direction_10m[i]} 12 12)"></path>
                         </svg>
-                        <span><b>${result.hourly[model].wind_speed_10m[i]}</b></span>
+                        <span><b>&nbsp;${result.hourly[model].wind_speed_10m[i]}</b></span>
                     </td>
-                    <td class="wind1g"> &nbsp;⇨ ${result.hourly[model].wind_gusts_10m[i]}</td>
+                    <td class="wind1g">&nbsp; ⇨&nbsp; ${result.hourly[model].wind_gusts_10m[i]}</td>
                     <td class="wind2">
                         <span class="mobileHide">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="4 4 16 16">
                             <title>${wind_direction_at_100m}°</title>
                             <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${wind_direction_at_100m} 12 12)"></path>
                         </svg>
-                        <span title="at ${mLevel[model]}m"> ${wind_speed_at_100m}</span></span>
+                        <span title="at ${mLevel[model]}m">&nbsp;${wind_speed_at_100m}</span></span>
                     </td>
                     <td class="wind3">
                         <span class="mobileHide">
@@ -198,7 +198,7 @@
                             <title>${wind_direction_at_level}°</title>
                             <path xmlns="http://www.w3.org/2000/svg" d=${arrow} transform="rotate(${wind_direction_at_level} 12 12)"></path>
                         </svg>
-                        <span title="at ${geopotential_height}m"> ${wind_speed_at_level}</span></span>
+                        <span title="at ${geopotential_height}m">&nbsp;${wind_speed_at_level}</span></span>
                     </td>
                     <td class="clouds">${result.hourly[model].cloud_cover[i]}</td>
                     <td class="cloudsLow">
@@ -212,18 +212,18 @@
                     </td>
                     <td class="pbl">${result.hourly[model].boundary_layer_height[i] ?? ""}</td>
                     `
-                    // +---------------------+
-                    // | end of row template |
-                    // +---------------------+
+                    // +-------------------------+
+                    // | end of the row template |
+                    // +-------------------------+
 
-                    // create date cell for a new date:
+<!--                    create date cell for a new date:-->
                     let dateCell = childRow.querySelector('td.date');
                     if (prevDate != date.getDate()) {
                         dateCell.setAttribute('rowspan', `${timeResol}`);
                         if ([0, 6].includes(date.getDay())) {dateCell.classList.add('weekend');}
                         prevDate = date.getDate();
                         let emptyRow;
-                        // two empty rows to keep odd-even sequence
+<!--                        two empty rows to keep odd-even sequence-->
                         for (let i = 0; i < 2; i++) {
                             emptyRow = document.createElement('tr');
                             emptyRow.setAttribute('class', 'dataRow');

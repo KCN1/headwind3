@@ -34,8 +34,8 @@ class HourlyForecast(BaseModel):
     wind_speed_900hPa: ListDecimal0
     wind_direction_850hPa: ListDecimal0
     wind_speed_850hPa: ListDecimal0
-    wind_direction_900hPa: ListDecimal0
-    wind_speed_900hPa: ListDecimal0
+    wind_direction_800hPa: ListDecimal0
+    wind_speed_800hPa: ListDecimal0
 
     geopotential_height_950hPa: ListDecimal0
     geopotential_height_925hPa: ListDecimal0
